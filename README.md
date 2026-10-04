@@ -1,93 +1,81 @@
-# template-gitlab-b2e039f6
+# Архитектор процессов — AI → BPMN 2.0
 
-Template for task: GitLab репозиторий
+Небольшой веб-сервис, который превращает текстовое описание процесса в BPMN-диаграмму и меняет существующую схему по следующей реплике. Диаграмма отображается в браузере через `bpmn-js` и скачивается как редактируемый файл `.bpmn`.
 
-## Getting started
+## Быстрый запуск без Docker
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Нужен Python 3.11+ и доступ к API модели с поддержкой **Chat Completions tool/function calling**.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://git.codenrock.com/codenrock/ii-assistenty/template-gitlab-b2e039f6.git
-git branch -M main
-git push -uf origin main
+```bash
+cd arkhitektor-bpmn-diagramm
+python -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+cp .env.example .env
 ```
 
-## Integrate with your tools
+В `.env` задайте настоящий `LLM_API_KEY`, имя модели `LLM_MODEL` и при необходимости `LLM_BASE_URL`. Затем:
 
-- [ ] [Set up project integrations](https://git.codenrock.com/codenrock/ii-assistenty/template-gitlab-b2e039f6/-/settings/integrations)
+```bash
+./run.sh
+```
 
-## Collaborate with your team
+Альтернативная команда: `make up`.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Откройте **http://localhost:8000**. Порт можно изменить через `PORT=8080 ./run.sh`.
 
-## Test and Deploy
+Без ключа API страница и кнопка **«Открыть демо-схему»** работают. Генерация и разговорное редактирование требуют настроенной модели; отсутствие ключа показывается как понятная ошибка. Ключ хранится только на сервере.
 
-Use the built-in continuous integration in GitLab.
+Если скрипт не запускается из-за отсутствия права исполнения, используйте `bash run.sh`.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Что попробовать
 
-***
+Сначала вставьте описание:
 
-# Editing this README
+> Заявитель подаёт заявку на ремонт оборудования. Диспетчер проверяет полноту данных. Если данных не хватает, он запрашивает уточнение и процесс завершается ожиданием ответа. Если данные полные, служба безопасности проверяет допуск, а инженер оценивает технический риск параллельно. После обеих проверок диспетчер решает, согласовать ремонт или отклонить заявку.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Затем отправьте уточнение:
 
-## Suggestions for a good README
+> После параллельных проверок, перед решением диспетчера, добавь юридическую проверку.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Можно нажать на элемент схемы и написать «Переименуй этот шаг в…». Текущая схема сохраняется в `localStorage` этого браузера. **«Новая схема»** очищает её; **«Скачать .bpmn»** сохраняет BPMN XML, который можно открыть и редактировать в BPMN-совместимом редакторе, например [bpmn.io](https://demo.bpmn.io/).
 
-## Name
-Choose a self-explaining name for your project.
+## Как устроено
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+1. Браузер отправляет текст, текущий граф и ID выбранного элемента на `POST /api/chat`.
+2. Адаптер API показывает модели ограниченный набор инструментов: создание участников, задач, событий, шлюзов и связей, переименование, перемещение, удаление, вставку шага и добавление параллельной задачи. Пакетный вызов применяет несколько операций атомарно, что ускоряет построение сложной схемы.
+3. Python применяет вызовы к копии `ProcessGraph`, проверяя аргументы и ссылки. Модель не исполняет код и не пишет XML напрямую.
+4. Рендерер детерминированно создаёт BPMN 2.0 XML и BPMN DI. Браузер отображает его через локально поставляемый `bpmn-js`.
+5. При ошибке исходный граф остаётся у браузера. База данных не нужна.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Модель можно заменить, указав другой совместимый `LLM_BASE_URL`, `LLM_MODEL` и `LLM_API_KEY`. Провайдерный код изолирован в `app/llm.py`. Формат API — OpenAI-совместимый `/chat/completions` с `tools`; модель должна поддерживать последовательные вызовы инструментов.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## API
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- `GET /health` — проверка сервиса.
+- `GET /api/demo` — готовый пример без вызова модели.
+- `POST /api/render` — проверка графа и генерация BPMN XML без модели.
+- `POST /api/chat` — создание или правка схемы. Тело: `{"message":"...","current_graph":{},"selected_element_id":null}`.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Ответ `/api/chat` содержит `assistant_message`, `graph`, `bpmn_xml`, `warnings`.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Поддерживаемый BPMN
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Старт/завершение, обычные, пользовательские и автоматические задачи, XOR/AND/OR шлюзы, последовательные переходы и подписи ветвей. Участники показаны **дорожками одного пула**; связи между ними остаются последовательными переходами. Это подходит для одного сквозного процесса, но отдельные независимые пулы и BPMN message flows пока не реализованы. Разметка координат простая; большие схемы и циклы могут требовать ручной доводки в редакторе. На странице диаграмма редактируется через чат, а ручное редактирование доступно после экспорта `.bpmn`.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Проверка
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Тесты проверяют создание графа вызовами инструментов, правку второго сообщения с сохранением ID, откат ошибочной операции, структуру BPMN XML и HTTP-эндпоинты. Локальная демо-схема дополнительно проверена парсером `bpmn-moddle` без предупреждений.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Статические файлы `bpmn-js` версии 18.16.0 включены в `app/static/vendor` для работы интерфейса без CDN; лицензия находится рядом с ними.
 
-## License
-For open source projects, say how it is licensed.
+Для временного хостинга достаточно Python-сервиса с командой запуска `./run.sh`, переменными `LLM_*` и публичным HTTP-портом из `PORT`.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## Публикация на Render
+
+В репозитории есть `render.yaml`. В Render выберите **New → Blueprint**, подключите GitHub-репозиторий и при создании введите `LLM_API_KEY`. Модель и адрес Cloud.ru уже заданы в Blueprint; ключ в Git не хранится. После сборки Render выдаст ссылку `onrender.com`.
+
+Если создаёте Web Service вручную, укажите корень репозитория, команду сборки `pip install -r requirements.txt` и команду запуска `python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Добавьте переменные `LLM_API_KEY`, `LLM_MODEL` и `LLM_BASE_URL` в настройках Render.

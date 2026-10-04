@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101f35">
+  <title>Архитектор процессов — BPMN ассистент</title>
+  <link rel="stylesheet" href="/static/vendor/diagram-js.css">
+  <link rel="stylesheet" href="/static/vendor/bpmn-font/css/bpmn.css">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="brand-copy">
+        <strong>АРХИТЕКТОР <em>ПРОЦЕССОВ</em></strong>
+        <small>AI → BPMN 2.0</small>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-badge"><i></i> Прототип для энергетики</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <div class="sidebar-heading">
+          <div class="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО / 01</div>
+          <h1>От описания<br>к процессу<span>.</span></h1>
+          <p>Опишите процесс обычными словами. Ассистент построит схему, а затем изменит её по вашему запросу.</p>
+        </div>
+
+        <div id="conversation" class="conversation" aria-live="polite">
+          <div class="welcome-card">
+            <div class="welcome-icon" aria-hidden="true">✳</div>
+            <div>
+              <strong>Начните с описания</strong>
+              <p>Укажите участников, последовательность шагов, условия и параллельные действия.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="composer-wrap">
+          <div id="error" class="error-banner" role="alert" hidden></div>
+          <div id="warnings" class="warning-banner" hidden></div>
+          <div class="composer">
+            <label for="message" class="sr-only">Сообщение ассистенту</label>
+            <textarea id="message" rows="5" placeholder="Например: диспетчер получает заявку на ремонт, проверяет приоритет, затем бригада и склад параллельно готовятся к работам…"></textarea>
+            <div class="composer-footer">
+              <span>Ctrl + Enter для отправки</span>
+              <button id="send" class="primary-button" type="button">Построить схему <span aria-hidden="true">↗</span></button>
+            </div>
+          </div>
+          <div class="sidebar-actions">
+            <button id="fill-example" class="text-button" type="button">Вставить пример описания</button>
+            <span class="action-separator">·</span>
+            <button id="load-demo" class="text-button" type="button">Открыть демо-схему</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="diagram-panel" aria-label="Диаграмма BPMN">
+        <div class="diagram-toolbar">
+          <div class="diagram-title">
+            <span class="diagram-kicker">ДИАГРАММА / BPMN 2.0</span>
+            <strong id="process-name">Новый процесс</strong>
+            <span id="diagram-meta">Схема появится здесь после генерации</span>
+          </div>
+          <div class="toolbar-actions">
+            <button id="new-diagram" class="tool-button" type="button" title="Новая схема">Новая схема</button>
+            <button id="fit" class="tool-button icon-button" type="button" title="Показать целиком" aria-label="Показать схему целиком" disabled>⤢</button>
+            <button id="download" class="download-button" type="button" disabled>Скачать .bpmn <span aria-hidden="true">↓</span></button>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <div id="canvas" class="canvas"></div>
+          <div id="empty-state" class="empty-state">
+            <div class="empty-graphic" aria-hidden="true">
+              <div class="graphic-line line-one"></div><div class="graphic-line line-two"></div>
+              <span class="graphic-node node-one"></span><span class="graphic-node node-two"></span><span class="graphic-node node-three"></span>
+              <span class="graphic-diamond"></span>
+            </div>
+            <span class="empty-eyebrow">ВАШ ПРОЦЕСС ЖДЁТ ОПИСАНИЯ</span>
+            <h2>Сложный процесс.<br>Ясная схема.</h2>
+            <p>Опишите работу команды слева или откройте готовый пример, чтобы посмотреть результат без ключа API.</p>
+          </div>
+        </div>
+        <div class="diagram-footer">
+          <span id="status"><span class="status-dot"></span> Готов к работе</span>
+          <span id="selected-label">Нажмите на элемент схемы, чтобы выбрать его для правки</span>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/static/vendor/bpmn-navigated-viewer.production.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
