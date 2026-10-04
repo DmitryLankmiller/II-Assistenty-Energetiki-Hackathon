@@ -28,6 +28,13 @@
           <div class="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО / 01</div>
           <h1>От описания<br>к процессу<span>.</span></h1>
           <p>Опишите процесс обычными словами. Ассистент построит схему, а затем изменит её по вашему запросу.</p>
+          <details class="usage-tip">
+            <summary>Как работать со схемой</summary>
+            <div class="usage-tip-body">
+              <p>Опишите участников, шаги и условия. После генерации нажмите на элемент схемы и напишите, что нужно изменить.</p>
+              <p>Для отправки можно нажать Ctrl + Enter. Схему можно перемещать мышью, менять масштаб и скачать в формате BPMN.</p>
+            </div>
+          </details>
         </div>
 
         <div id="conversation" class="conversation" aria-live="polite">
@@ -47,7 +54,6 @@
             <label for="message" class="sr-only">Сообщение ассистенту</label>
             <textarea id="message" rows="5" placeholder="Например: диспетчер получает заявку на ремонт, проверяет приоритет, затем бригада и склад параллельно готовятся к работам…"></textarea>
             <div class="composer-footer">
-              <span>Ctrl + Enter для отправки</span>
               <button id="send" class="primary-button" type="button">Построить схему <span aria-hidden="true">↗</span></button>
             </div>
           </div>
@@ -68,6 +74,8 @@
           </div>
           <div class="toolbar-actions">
             <button id="new-diagram" class="tool-button" type="button" title="Новая схема">Новая схема</button>
+            <button id="zoom-out" class="tool-button icon-button" type="button" title="Уменьшить масштаб" aria-label="Уменьшить масштаб" disabled>−</button>
+            <button id="zoom-in" class="tool-button icon-button" type="button" title="Увеличить масштаб" aria-label="Увеличить масштаб" disabled>+</button>
             <button id="fit" class="tool-button icon-button" type="button" title="Показать целиком" aria-label="Показать схему целиком" disabled>⤢</button>
             <button id="download" class="download-button" type="button" disabled>Скачать .bpmn <span aria-hidden="true">↓</span></button>
           </div>
@@ -87,7 +95,7 @@
         </div>
         <div class="diagram-footer">
           <span id="status"><span class="status-dot"></span> Готов к работе</span>
-          <span id="selected-label">Нажмите на элемент схемы, чтобы выбрать его для правки</span>
+          <span id="selected-label">Элемент не выбран</span>
         </div>
       </section>
     </main>

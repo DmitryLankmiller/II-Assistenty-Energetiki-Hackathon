@@ -57,14 +57,21 @@
       if (xml) await viewer.importXML(xml);
       throw error;
     }
-    viewer.get("canvas").zoom("fit-viewport");
+    const canvas = viewer.get("canvas");
+    canvas.zoom("fit-viewport");
+    if (canvas.zoom() < 0.8) {
+      const viewport = canvas.viewbox();
+      canvas.viewbox({ x: 40, y: 70, width: viewport.outer.width / 0.8, height: viewport.outer.height / 0.8 });
+    }
     graph = payload.graph;
     xml = payload.bpmn_xml;
     selectedElementId = null;
-    $("#selected-label").textContent = "Нажмите на элемент схемы, чтобы выбрать его для правки";
+    $("#selected-label").textContent = "Элемент не выбран";
     $("#empty-state").hidden = true;
     $("#download").disabled = false;
     $("#fit").disabled = false;
+    $("#zoom-in").disabled = false;
+    $("#zoom-out").disabled = false;
     $("#process-name").textContent = graph.process_name;
     $("#diagram-meta").textContent = `${graph.participants.length} участников · ${graph.nodes.length} элементов · ${graph.flows.length} переходов`;
     $("#send").textContent = "Изменить схему ↗";
@@ -110,9 +117,10 @@
     if (viewer) viewer.clear();
     $("#empty-state").hidden = false;
     $("#download").disabled = true; $("#fit").disabled = true;
+    $("#zoom-in").disabled = true; $("#zoom-out").disabled = true;
     $("#process-name").textContent = "Новый процесс";
     $("#diagram-meta").textContent = "Схема появится здесь после генерации";
-    $("#selected-label").textContent = "Нажмите на элемент схемы, чтобы выбрать его для правки";
+    $("#selected-label").textContent = "Элемент не выбран";
     $("#send").textContent = "Построить схему ↗";
     warningBox.hidden = true; conversation.innerHTML = "";
     clearError(); setStatus("Готов к работе");
@@ -164,6 +172,8 @@
   $("#load-demo").addEventListener("click", loadDemo);
   $("#new-diagram").addEventListener("click", reset);
   $("#fit").addEventListener("click", () => { if (viewer) viewer.get("canvas").zoom("fit-viewport"); });
+  $("#zoom-in").addEventListener("click", () => { if (viewer) { const canvas = viewer.get("canvas"); canvas.zoom(Math.min(2, canvas.zoom() * 1.25)); } });
+  $("#zoom-out").addEventListener("click", () => { if (viewer) { const canvas = viewer.get("canvas"); canvas.zoom(Math.max(0.2, canvas.zoom() / 1.25)); } });
   $("#download").addEventListener("click", download);
   registerSelection();
   restore();

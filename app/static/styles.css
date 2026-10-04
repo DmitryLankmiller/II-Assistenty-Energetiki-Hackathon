@@ -52,3 +52,32 @@ button:disabled { cursor: not-allowed; opacity: .47; }
 .diagram-footer { min-height: 43px; padding: 10px 23px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; color: #8294a4; font-size: 11px; }.status-dot { display: inline-block; width: 7px; height: 7px; background: #16b39f; border-radius: 50%; margin-right: 5px; }.diagram-footer #selected-label { text-align: right; }
 @media (max-width: 950px) { .workspace { grid-template-columns: minmax(300px, 350px) minmax(0,1fr); margin: 10px; gap: 10px; }.diagram-toolbar { flex-direction: column; align-items: stretch; min-height: 0; }.toolbar-actions { justify-content: flex-start; }.diagram-footer #selected-label { display: none; } }
 @media (max-width: 720px) { .app-shell { min-height: 100vh; height: auto; }.workspace { display: flex; flex-direction: column; }.sidebar { min-height: 510px; }.conversation { max-height: 240px; }.diagram-panel { min-height: 520px; }.topbar-badge { display: none; } }
+
+/* Keep the controls and the text needed to operate the app readable. */
+body { font-size: 15px; }
+.brand-copy strong, .topbar-badge { font-size: 14px; }
+.brand-copy small { font-size: 12px; }
+.eyebrow, .diagram-kicker, .empty-eyebrow { font-size: 12px; letter-spacing: .1em; }
+.sidebar-heading p { font-size: 15px; line-height: 1.55; max-width: none; }
+.usage-tip { margin-top: 16px; border: 1px solid #d9ece9; border-radius: 9px; background: #f5fbfa; }
+.usage-tip summary { padding: 11px 13px; color: #087e77; font-size: 14px; font-weight: 700; cursor: pointer; }
+.usage-tip summary:focus-visible { outline: 2px solid #0da89a; outline-offset: 2px; }
+.usage-tip-body { padding: 0 13px 12px; }
+.usage-tip-body p { margin: 0 0 9px; color: #42646a; font-size: 14px; line-height: 1.5; }
+.usage-tip-body p:last-child { margin-bottom: 0; }
+.welcome-card strong { font-size: 15px; }
+.welcome-card p, .message { font-size: 14px; }
+.message-label { font-size: 12px; }
+.error-banner, .warning-banner { font-size: 14px; }
+.composer textarea { font-size: 15px; }
+.composer textarea::placeholder { color: #697f91; }
+.composer-footer { justify-content: flex-end; }
+.primary-button, .text-button { font-size: 14px; }
+.text-button { padding: 5px 2px; }
+.diagram-title > span:last-child { font-size: 13px; color: #63788b; }
+.tool-button, .download-button { font-size: 13px; }
+.icon-button { min-width: 38px; font-size: 20px; }
+.toolbar-actions { flex-wrap: wrap; }
+.empty-state p { font-size: 15px; color: #667d90; }
+.diagram-footer { font-size: 13px; color: #596f82; }
+.canvas .djs-label { font-size: 14px !important; }

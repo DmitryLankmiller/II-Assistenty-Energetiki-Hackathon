@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 
 import httpx
 
-from app.domain import GraphEditor, GraphError, ProcessGraph, validate_complete
+from app.domain import Flow, GraphEditor, GraphError, Node, Participant, ProcessGraph, validate_complete
 from app.llm import OpenAICompatibleProvider
 from app.main import app, demo_graph
 from app.renderer import BPMN, BPMNDI, DC, DI, render_bpmn
@@ -27,6 +27,48 @@ class ScriptedProvider(OpenAICompatibleProvider):
 
 
 class MVPTests(unittest.TestCase):
+    def test_long_branches_use_separate_space_above_tasks(self):
+        graph = ProcessGraph(
+            participants=[Participant(id="Lane_team", name="Команда")],
+            nodes=[
+                Node(id="Start", type="startEvent", participant_id="Lane_team"),
+                Node(id="Decision", type="exclusiveGateway", participant_id="Lane_team"),
+                Node(id="Order", type="userTask", name="Заказать материалы", participant_id="Lane_team"),
+                Node(id="Prepare", type="userTask", name="Подготовить работу", participant_id="Lane_team"),
+                Node(id="End", type="endEvent", participant_id="Lane_team"),
+            ],
+            flows=[
+                Flow(id="F1", source_id="Start", target_id="Decision"),
+                Flow(id="F2", source_id="Decision", target_id="Order", name="Нужно заказать"),
+                Flow(id="F3", source_id="Order", target_id="Prepare"),
+                Flow(id="F4", source_id="Decision", target_id="Prepare", name="Материалы есть"),
+                Flow(id="F5", source_id="Prepare", target_id="End"),
+                Flow(id="F6", source_id="Decision", target_id="End", name="Отменить"),
+            ],
+        )
+        root = ET.fromstring(render_bpmn(graph))
+        ns = {"bpmndi": BPMNDI, "dc": DC, "di": DI}
+        bounds = {
+            shape.get("bpmnElement"): tuple(float(rect.get(key)) for key in ("x", "y", "width", "height"))
+            for shape in root.findall(".//bpmndi:BPMNShape", ns)
+            if (rect := shape.find("dc:Bounds", ns)) is not None
+        }
+        self.assertGreater(bounds["Lane_team"][3], 260)
+        order = bounds["Order"]
+        labels = []
+        for flow_id in ("F4", "F6"):
+            edge = root.find(f".//bpmndi:BPMNEdge[@bpmnElement='{flow_id}']", ns)
+            points = [(float(point.get("x")), float(point.get("y")))
+                      for point in edge.findall("di:waypoint", ns)]
+            self.assertEqual(len(points), 6)
+            self.assertLess(points[2][1], order[1])
+            self.assertEqual(points[2][1], points[3][1])
+            label = edge.find("bpmndi:BPMNLabel/dc:Bounds", ns)
+            label_bounds = tuple(float(label.get(key)) for key in ("x", "y", "width", "height"))
+            labels.append(label_bounds)
+            self.assertLess(label_bounds[1] + label_bounds[3], order[1])
+        self.assertGreaterEqual(abs(labels[0][1] - labels[1][1]), labels[0][3])
+
     def test_demo_renders_valid_bpmn_with_lanes_gateways_and_di(self):
         graph = demo_graph()
         errors, warnings = validate_complete(graph)
