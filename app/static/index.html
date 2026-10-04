@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101f35">
-  <title>Архитектор процессов — BPMN ассистент</title>
+  <title>Архитектор BPMN процессов</title>
   <link rel="stylesheet" href="/static/vendor/diagram-js.css">
   <link rel="stylesheet" href="/static/vendor/bpmn-font/css/bpmn.css">
   <link rel="stylesheet" href="/static/styles.css">
@@ -14,19 +14,14 @@
     <header class="topbar">
       <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="brand-copy">
-        <strong>АРХИТЕКТОР <em>ПРОЦЕССОВ</em></strong>
-        <small>AI → BPMN 2.0</small>
-      </div>
-      <div class="topbar-right">
-        <span class="topbar-badge"><i></i> Прототип для энергетики</span>
+        <strong>АРХИТЕКТОР <em>BPMN ПРОЦЕССОВ</em></strong>
       </div>
     </header>
 
     <main class="workspace">
       <aside class="sidebar">
         <div class="sidebar-heading">
-          <div class="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО / 01</div>
-          <h1>От описания<br>к процессу<span>.</span></h1>
+          <div class="eyebrow">ДЕМО ПРОСТРАНСТВО</div>
           <p>Опишите процесс обычными словами. Ассистент построит схему, а затем изменит её по вашему запросу.</p>
           <details class="usage-tip">
             <summary>Как работать со схемой</summary>
@@ -54,7 +49,7 @@
             <label for="message" class="sr-only">Сообщение ассистенту</label>
             <textarea id="message" rows="5" placeholder="Например: диспетчер получает заявку на ремонт, проверяет приоритет, затем бригада и склад параллельно готовятся к работам…"></textarea>
             <div class="composer-footer">
-              <button id="send" class="primary-button" type="button">Построить схему <span aria-hidden="true">↗</span></button>
+              <button id="send" class="primary-button" type="button">Построить схему</button>
             </div>
           </div>
           <div class="sidebar-actions">
@@ -82,13 +77,16 @@
         </div>
         <div class="canvas-wrap">
           <div id="canvas" class="canvas"></div>
+          <div id="loading-overlay" class="loading-overlay" role="status" aria-live="polite" aria-hidden="true">
+            <div class="loading-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+            <span class="sr-only">Обновляем схему</span>
+          </div>
           <div id="empty-state" class="empty-state">
             <div class="empty-graphic" aria-hidden="true">
               <div class="graphic-line line-one"></div><div class="graphic-line line-two"></div>
               <span class="graphic-node node-one"></span><span class="graphic-node node-two"></span><span class="graphic-node node-three"></span>
               <span class="graphic-diamond"></span>
             </div>
-            <span class="empty-eyebrow">ВАШ ПРОЦЕСС ЖДЁТ ОПИСАНИЯ</span>
             <h2>Сложный процесс.<br>Ясная схема.</h2>
             <p>Опишите работу команды слева или откройте готовый пример, чтобы посмотреть результат без ключа API.</p>
           </div>

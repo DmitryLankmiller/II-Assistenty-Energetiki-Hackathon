@@ -9,6 +9,7 @@
   let xml = "";
   let selectedElementId = null;
   let busy = false;
+  let busyStartedAt = 0;
 
   const message = $("#message");
   const errorBox = $("#error");
@@ -20,9 +21,17 @@
   function clearError() { errorBox.hidden = true; errorBox.textContent = ""; }
   function setBusy(value) {
     busy = value;
+    if (value) busyStartedAt = performance.now();
+    $(".canvas-wrap").classList.toggle("is-loading", value);
+    $("#loading-overlay").setAttribute("aria-hidden", String(!value));
     for (const button of [$("#send"), $("#load-demo"), $("#new-diagram")]) button.disabled = value;
-    $("#send").textContent = value ? "Создаю схему…" : graph ? "Изменить схему ↗" : "Построить схему ↗";
+    $("#send").textContent = value ? "Создаю схему…" : graph ? "Изменить схему" : "Построить схему";
     setStatus(value ? "Ассистент анализирует процесс…" : "Готов к работе");
+  }
+  async function finishBusy() {
+    const remaining = 650 - (performance.now() - busyStartedAt);
+    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+    setBusy(false);
   }
   function addMessage(role, text) {
     const bubble = document.createElement("div");
@@ -74,7 +83,7 @@
     $("#zoom-out").disabled = false;
     $("#process-name").textContent = graph.process_name;
     $("#diagram-meta").textContent = `${graph.participants.length} участников · ${graph.nodes.length} элементов · ${graph.flows.length} переходов`;
-    $("#send").textContent = "Изменить схему ↗";
+    $("#send").textContent = "Изменить схему";
     warningBox.hidden = !(payload.warnings && payload.warnings.length);
     warningBox.textContent = payload.warnings ? payload.warnings.join(" ") : "";
     if (persist) {
@@ -98,7 +107,7 @@
       addMessage("assistant", payload.assistant_message);
       message.value = "";
     } catch (error) { showError(error.message || "Не удалось обновить схему."); }
-    finally { setBusy(false); }
+    finally { await finishBusy(); }
   }
   async function loadDemo() {
     if (busy) return;
@@ -108,7 +117,7 @@
       await showDiagram(payload);
       addMessage("assistant", payload.assistant_message);
     } catch (error) { showError(error.message); }
-    finally { setBusy(false); }
+    finally { await finishBusy(); }
   }
   function reset() {
     if (busy) return;
@@ -121,7 +130,7 @@
     $("#process-name").textContent = "Новый процесс";
     $("#diagram-meta").textContent = "Схема появится здесь после генерации";
     $("#selected-label").textContent = "Элемент не выбран";
-    $("#send").textContent = "Построить схему ↗";
+    $("#send").textContent = "Построить схему";
     warningBox.hidden = true; conversation.innerHTML = "";
     clearError(); setStatus("Готов к работе");
     message.focus();
@@ -144,6 +153,12 @@
       if (!graph || !element) return;
       const found = [...graph.nodes, ...graph.participants, ...graph.flows].find((item) => item.id === element.id);
       if (!found) return;
+      if (selectedElementId === found.id) {
+        canvas.removeMarker(selectedElementId, "selected-by-chat");
+        selectedElementId = null;
+        $("#selected-label").textContent = "Элемент не выбран";
+        return;
+      }
       if (selectedElementId) canvas.removeMarker(selectedElementId, "selected-by-chat");
       selectedElementId = found.id;
       canvas.addMarker(selectedElementId, "selected-by-chat");
